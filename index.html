@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gửi câu chuyên - Câu chuyện thời hoa lửa</title>
+  <title>Gửi câu chuyện - Câu chuyện thời hoa lửa</title>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -35,19 +35,17 @@
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
     }
     body { background-color: var(--bg-cream); color: var(--text-main); line-height: 1.6; }
-    /* Tiêu đề dùng font không chân hiện đại, nét đậm và khoảng cách chữ gọn như ảnh mẫu */
+    
     h1, h2, h3, .brand-title, .card-title, .form-label {
       font-family: 'Inter', sans-serif;
-      letter-spacing: -0.02em; /* Thu hẹp nhẹ khoảng cách chữ để giống giao diện mẫu */
+      letter-spacing: -0.02em;
     }
 
-    /* Tiêu đề chính đậm rõ nét */
     .brand-title, .card-title {
       font-weight: 700;
-      color: #1e293b; /* Màu chữ xanh đen sẫm giống ảnh mẫu */
+      color: #1e293b;
     }
 
-    /* Dòng mô tả nhỏ màu xám nhạt dưới tiêu đề */
     .card-subtitle {
       font-weight: 400;
       color: #64748b;
@@ -197,6 +195,33 @@
           <div id="lookupMsg" class="lookup-feedback"></div>
         </div>
 
+        <!-- KHUNG THÔNG BÁO QUYỀN LỢI & TIẾN ĐỘ BÀI ĐÃ DUYỆT -->
+        <div id="benefitProgressCard" style="background: #FBF8F3; border: 1.5px dashed #E5D7C7; border-radius: 12px; padding: 14px 18px; margin-bottom: 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <strong style="color: var(--primary); font-size: 0.92rem;">
+              <i class="fa-solid fa-award"></i> QUYỀN LỢI THAM GIA ĐÓNG GÓP TƯ LIỆU:
+            </strong>
+            <span id="studentSubmitCountBadge" style="background: #FFF; border: 1px solid var(--border-color); padding: 2px 10px; border-radius: 999px; font-size: 0.82rem; font-weight: 700; color: #555;">
+              Nhập MSSV để tra cứu tiến độ
+            </span>
+          </div>
+          
+          <ul style="font-size: 0.88rem; color: #574D49; padding-left: 20px; line-height: 1.6; margin-bottom: 8px;">
+            <li>Đóng góp từ <strong>1 bài viết được duyệt</strong>: Nhận Điểm rèn luyện mục <strong>Văn hóa, Chính trị cấp Đại học</strong>.</li>
+            <li>Đóng góp từ <strong>5 bài viết được duyệt</strong>: Được công nhận <strong>Tiêu chí phụ Đạo đức tốt</strong>.</li>
+          </ul>
+
+          <div id="progressBarWrapper" style="display: none; margin-top: 8px;">
+            <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 4px; font-weight: 600;">
+              <span id="progressText">Tiến độ bài đã duyệt: 0/5 bài</span>
+              <span id="progressStatusText" style="color: var(--primary);"></span>
+            </div>
+            <div style="background: #EBE5DC; height: 8px; border-radius: 4px; overflow: hidden;">
+              <div id="studentProgressBar" style="background: var(--primary); width: 0%; height: 100%; transition: width 0.3s ease;"></div>
+            </div>
+          </div>
+        </div>
+
         <div class="grid-3">
           <div class="form-group">
             <label class="form-label">Họ và tên</label>
@@ -329,7 +354,7 @@
       <div class="admin-title-box">
         <i class="fa-solid fa-shield-halved" style="font-size: 1.8rem; color: var(--primary);"></i>
         <div>
-          <h2 style="font-size: 1.3rem;">DANH SÁCH BÀI VIÊT CHỜ DUYỆT</h2>
+          <h2 style="font-size: 1.3rem;">DANH SÁCH BÀI VIẾT CHỜ DUYỆT</h2>
           <span style="font-size: 0.88rem; color: var(--text-muted);">Tiếp nhận bài đóng góp và cập nhật lên website</span>
         </div>
       </div>
@@ -398,7 +423,7 @@
     let adminDatabaseCache = null;
 
     /* =========================================================================
-       2. TRA CỨU MSSV SIÊU TỐC TỪ TAB 'SinhVien'
+       2. TRA CỨU MSSV VÀ ĐỐI SOÁT BÀI ĐÃ ĐƯỢC DUYỆT
        ========================================================================= */
     async function lookupStudentInfo() {
       const mssv = document.getElementById('mssvInput').value.trim();
@@ -455,6 +480,9 @@
           msg.className = 'lookup-feedback success';
           msg.innerHTML = `<i class="fa-solid fa-circle-check"></i> Đã tìm thấy: <b>${student.fullname}</b> (${student.faculty} - ${student.studentClass})`;
           showToast("Tra cứu thành công!");
+
+          // ĐỐI SOÁT TIẾN ĐỘ BÀI VIẾT ĐÃ ĐƯỢC ADMIN DUYỆT
+          checkStudentSubmissionsCount(mssv);
         } else {
           msg.className = 'lookup-feedback error';
           msg.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> Không tìm thấy sinh viên có MSSV "${mssv}" trong tab SinhVien!`;
@@ -464,6 +492,70 @@
         console.error("Lỗi tra cứu:", err);
         msg.className = 'lookup-feedback error';
         msg.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Không thể đọc tab SinhVien. Hãy kiểm tra quyền Chia sẻ công khai của Sheet.';
+      }
+    }
+
+    async function getLatestPostsForStudent() {
+      if (cachedPosts && cachedPosts.length > 0) return cachedPosts;
+      try {
+        const res = await fetch(`${APPS_SCRIPT_URL}?action=getPosts`);
+        const data = await res.json();
+        cachedPosts = data.posts || [];
+        return cachedPosts;
+      } catch (e) {
+        return JSON.parse(localStorage.getItem('studentSubmissions') || '[]');
+      }
+    }
+
+    async function checkStudentSubmissionsCount(mssv) {
+      const badge = document.getElementById('studentSubmitCountBadge');
+      const progressWrapper = document.getElementById('progressBarWrapper');
+      const progressText = document.getElementById('progressText');
+      const progressBar = document.getElementById('studentProgressBar');
+      const progressStatus = document.getElementById('progressStatusText');
+
+      if (!badge || !progressWrapper) return;
+
+      badge.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang đối soát...';
+
+      const allPosts = await getLatestPostsForStudent();
+      const studentPosts = allPosts.filter(p => String(p.mssv).trim() === String(mssv).trim());
+      
+      const approvedPosts = studentPosts.filter(p => p.status === 'processed');
+      const pendingPosts = studentPosts.filter(p => p.status !== 'processed');
+
+      const approvedCount = approvedPosts.length;
+      const pendingCount = pendingPosts.length;
+
+      progressWrapper.style.display = 'block';
+
+      let badgeHtml = `Đã duyệt: <b style="color:#2E7D32; font-size:0.95rem;">${approvedCount}</b> bài`;
+      if (pendingCount > 0) {
+        badgeHtml += ` <span style="color:#E65100; font-size:0.8rem;">(${pendingCount} bài chờ duyệt)</span>`;
+      }
+      badge.innerHTML = badgeHtml;
+
+      const percent = Math.min((approvedCount / 5) * 100, 100);
+      progressBar.style.width = percent + '%';
+      progressText.innerText = `Tiến độ xét duyệt: ${approvedCount}/5 bài hợp lệ`;
+
+      if (approvedCount >= 5) {
+        progressStatus.innerHTML = '<i class="fa-solid fa-circle-check"></i> ĐỦ ĐIỀU KIỆN TIÊU CHÍ PHỤ ĐẠO ĐỨC TỐT!';
+        progressStatus.style.color = '#2E7D32';
+        progressBar.style.background = '#2E7D32';
+      } else if (approvedCount >= 1) {
+        progressStatus.innerHTML = `<i class="fa-solid fa-circle-check"></i> Đạt ĐRL Văn hóa - Chính trị (Cần thêm ${5 - approvedCount} bài để đạt Tiêu chí phụ)`;
+        progressStatus.style.color = 'var(--primary)';
+        progressBar.style.background = 'var(--primary)';
+      } else {
+        if (pendingCount > 0) {
+          progressStatus.innerText = `Đang có ${pendingCount} bài chờ Admin duyệt để tính điểm.`;
+          progressStatus.style.color = '#E65100';
+        } else {
+          progressStatus.innerText = 'Chưa có bài duyệt. Gửi bài ngay để nhận ĐRL!';
+          progressStatus.style.color = '#888';
+        }
+        progressBar.style.background = '#CCC';
       }
     }
 
@@ -538,6 +630,10 @@
       document.getElementById('submissionForm').reset();
       document.getElementById('editorContent').innerHTML = '';
       document.getElementById('lookupMsg').innerHTML = '';
+      const progressWrapper = document.getElementById('progressBarWrapper');
+      if (progressWrapper) progressWrapper.style.display = 'none';
+      const badge = document.getElementById('studentSubmitCountBadge');
+      if (badge) badge.innerText = 'Nhập MSSV để tra cứu tiến độ';
     }
 
     function execCmd(cmd, val = null) {
@@ -694,6 +790,10 @@
       `).join('');
     }
 
+    /* =========================================================================
+       6. XEM CHI TIẾT THEO THỨ TỰ:
+          Nhân vật lịch sử -> Tiêu đề -> Mô tả ngắn -> Thời kỳ lịch sử -> Nội dung chi tiết
+       ========================================================================= */
     function viewPostDetail(postId) {
       const post = cachedPosts.find(p => p.id === postId);
       if (!post) return;
@@ -709,7 +809,6 @@
 
       document.getElementById('viewPostHeading').innerHTML = `<i class="fa-solid fa-book-open"></i> ${post.title || 'Chi tiết bài viết'}`;
       
-      // Thứ tự hiển thị từng trường kèm ô/nút Copy độc lập an toàn
       document.getElementById('viewPostDetailContent').innerHTML = `
         <div style="background:#FBF8F3; padding:14px; border-radius:8px; margin-bottom:18px; font-size:0.9rem; border-left:4px solid var(--primary);">
           <div><b>Sinh viên:</b> ${post.fullname} (MSSV: ${post.mssv}) | <b>Lớp:</b> ${post.studentClass} (${post.faculty})</div>
@@ -819,7 +918,6 @@
       temp.innerHTML = htmlContent;
       const plainText = temp.innerText || temp.textContent || "";
 
-      // Sử dụng Clipboard API hỗ trợ cả HTML (mang theo ảnh) và Plain Text
       try {
         if (navigator.clipboard && window.ClipboardItem) {
           const blobHtml = new Blob([htmlContent], { type: "text/html" });
@@ -836,7 +934,6 @@
         console.warn("ClipboardItem không được hỗ trợ hoặc bị chặn, chuyển sang chế độ Range copy:", err);
       }
 
-      // Dự phòng bằng Range selection (Tương thích 100% mọi trình duyệt)
       const container = document.getElementById("detailArticleContentBox");
       if (container) {
         const range = document.createRange();
