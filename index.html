@@ -496,6 +496,7 @@
     async function handleFormSubmit(event) {
       event.preventDefault();
 
+      const submitBtn = event.target.querySelector('button[type="submit"]');
       const mssvInput = document.getElementById('mssvInput').value.trim();
       const figureInput = document.getElementById('postFigure').value.trim();
       const titleInput = document.getElementById('postTitle').value.trim();
@@ -503,21 +504,6 @@
 
       if (!figureInput) {
         alert("Vui lòng nhập tên Nhân vật lịch sử!");
-        document.getElementById('postFigure').focus();
-        return;
-      }
-
-      // KIỂM TRA NGẦM: Báo lỗi nếu trùng tên nhân vật của chính sinh viên này
-      const allPosts = await getLatestPosts();
-      const studentPosts = allPosts.filter(p => String(p.mssv).trim() === String(mssvInput).trim());
-      
-      const isDuplicateFigure = studentPosts.some(p => {
-        const existingFigure = String(p.historicalFigure || '').trim().toLowerCase();
-        return existingFigure === figureInput.toLowerCase();
-      });
-
-      if (isDuplicateFigure) {
-        alert(`Bạn đã từng gửi bài viết về nhân vật "${figureInput}". Vui lòng chọn một nhân vật lịch sử khác (mỗi sinh viên viết về các nhân vật khác nhau)!`);
         document.getElementById('postFigure').focus();
         return;
       }
@@ -533,26 +519,68 @@
         return;
       }
 
-      const postData = {
-        action: "submitPost",
-        id: "POST_" + Date.now(),
-        timestamp: new Date().toLocaleString('vi-VN'),
-        mssv: mssvInput,
-        fullname: document.getElementById('fullnameInput').value.trim(),
-        faculty: document.getElementById('facultyInput').value.trim(),
-        studentClass: document.getElementById('classInput').value.trim(),
-        phone: document.getElementById('phoneInput').value.trim(),
-        email: document.getElementById('emailInput').value.trim(),
-        historicalFigure: figureInput,
-        title: titleInput,
-        shortDesc: document.getElementById('postShortDesc').value.trim(),
-        historicalPeriod: document.getElementById('historicalPeriod').value,
-        content: editorContent
-      };
-
-      showToast("Đang lưu bài viết ...");
+      // 1. KHÓA NÚT GỬI NGAY ĐỂ CHỐNG SPAM CLICK LIÊN TỤC
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang gửi bài...';
+      }
 
       try {
+        // 2. TẢI DỮ LIỆU MỚI NHẤT ĐỂ KIỂM TRA TRÙNG (KÈM MÃ THỜI GIAN CHỐNG CACHE)
+        let allPosts = [];
+        if (!APPS_SCRIPT_URL.includes("THAY_THE_URL_CUA_BAN") && !APPS_SCRIPT_URL.includes("...")) {
+          try {
+            const res = await fetch(`${APPS_SCRIPT_URL}?action=getPosts&_t=${Date.now()}`);
+            const data = await res.json();
+            allPosts = data.posts || [];
+          } catch (e) {
+            allPosts = JSON.parse(localStorage.getItem('studentSubmissions') || '[]');
+          }
+        } else {
+          allPosts = JSON.parse(localStorage.getItem('studentSubmissions') || '[]');
+        }
+
+        // Lọc bài của riêng sinh viên này
+        const studentPosts = allPosts.filter(p => String(p.mssv).trim() === String(mssvInput).trim());
+
+        // Chuẩn hóa tên nhân vật (loại bỏ dấu cách thừa, đưa về chữ thường)
+        const normalizeStr = (str) => String(str || '').toLowerCase().replace(/\s+/g, ' ').trim();
+        const currentNormFigure = normalizeStr(figureInput);
+
+        const isDuplicateFigure = studentPosts.some(p => normalizeStr(p.historicalFigure) === currentNormFigure);
+
+        if (isDuplicateFigure) {
+          alert(`Bạn đã gửi bài viết về nhân vật "${figureInput}" rồi. Mỗi sinh viên phải viết về các nhân vật lịch sử khác nhau, không được trùng lặp!`);
+          document.getElementById('postFigure').focus();
+          
+          // Mở lại nút gửi
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Gửi bài viết duyệt';
+          }
+          return;
+        }
+
+        // 3. TẠO DỮ LIỆU VÀ GỬI LÊN APPS SCRIPT
+        const postData = {
+          action: "submitPost",
+          id: "POST_" + Date.now(),
+          timestamp: new Date().toLocaleString('vi-VN'),
+          mssv: mssvInput,
+          fullname: document.getElementById('fullnameInput').value.trim(),
+          faculty: document.getElementById('facultyInput').value.trim(),
+          studentClass: document.getElementById('classInput').value.trim(),
+          phone: document.getElementById('phoneInput').value.trim(),
+          email: document.getElementById('emailInput').value.trim(),
+          historicalFigure: figureInput,
+          title: titleInput,
+          shortDesc: document.getElementById('postShortDesc').value.trim(),
+          historicalPeriod: document.getElementById('historicalPeriod').value,
+          content: editorContent
+        };
+
+        showToast("Đang lưu bài viết...");
+
         if (!APPS_SCRIPT_URL.includes("THAY_THE_URL_CUA_BAN") && !APPS_SCRIPT_URL.includes("...")) {
           await fetch(APPS_SCRIPT_URL, {
             method: "POST",
@@ -562,14 +590,22 @@
           });
         }
 
+        // Cập nhật bộ nhớ tạm
         const local = JSON.parse(localStorage.getItem('studentSubmissions') || '[]');
         local.unshift(postData);
         localStorage.setItem('studentSubmissions', JSON.stringify(local));
 
         showToast("Đã gửi và lưu bài viết thành công!");
         resetForm();
+
       } catch (err) {
         alert("Có lỗi khi lưu bài: " + err.message);
+      } finally {
+        // Mở lại nút gửi sau khi hoàn tất
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Gửi bài viết duyệt';
+        }
       }
     }
 
