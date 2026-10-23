@@ -7,7 +7,7 @@
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   
   <style>
@@ -28,8 +28,31 @@
       --shadow-lg: 0 16px 36px rgba(92, 60, 48, 0.12);
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+    * { 
+      box-sizing: border-box; 
+      margin: 0; 
+      padding: 0; 
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+    }
     body { background-color: var(--bg-cream); color: var(--text-main); line-height: 1.6; }
+    /* Tiêu đề dùng font không chân hiện đại, nét đậm và khoảng cách chữ gọn như ảnh mẫu */
+    h1, h2, h3, .brand-title, .card-title, .form-label {
+      font-family: 'Inter', sans-serif;
+      letter-spacing: -0.02em; /* Thu hẹp nhẹ khoảng cách chữ để giống giao diện mẫu */
+    }
+
+    /* Tiêu đề chính đậm rõ nét */
+    .brand-title, .card-title {
+      font-weight: 700;
+      color: #1e293b; /* Màu chữ xanh đen sẫm giống ảnh mẫu */
+    }
+
+    /* Dòng mô tả nhỏ màu xám nhạt dưới tiêu đề */
+    .card-subtitle {
+      font-weight: 400;
+      color: #64748b;
+      letter-spacing: -0.01em;
+    }
 
     #studentView { padding: 30px 16px 80px; max-width: 900px; margin: 0 auto; }
     #adminWorkspace { display: none; min-height: 100vh; background: #F8F6F2; padding: 24px 32px; }
@@ -671,10 +694,6 @@
       `).join('');
     }
 
-    /* =========================================================================
-       6. XEM CHI TIẾT THEO THỨ TỰ:
-          Nhân vật lịch sử -> Tiêu đề -> Mô tả ngắn -> Thời kỳ lịch sử -> Nội dung chi tiết
-       ========================================================================= */
     function viewPostDetail(postId) {
       const post = cachedPosts.find(p => p.id === postId);
       if (!post) return;
@@ -690,7 +709,7 @@
 
       document.getElementById('viewPostHeading').innerHTML = `<i class="fa-solid fa-book-open"></i> ${post.title || 'Chi tiết bài viết'}`;
       
-      // Thứ tự hiển thị từng trường kèm ô/nút Copy riêng biệt
+      // Thứ tự hiển thị từng trường kèm ô/nút Copy độc lập an toàn
       document.getElementById('viewPostDetailContent').innerHTML = `
         <div style="background:#FBF8F3; padding:14px; border-radius:8px; margin-bottom:18px; font-size:0.9rem; border-left:4px solid var(--primary);">
           <div><b>Sinh viên:</b> ${post.fullname} (MSSV: ${post.mssv}) | <b>Lớp:</b> ${post.studentClass} (${post.faculty})</div>
@@ -701,7 +720,7 @@
         <div style="margin-bottom:16px;">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
             <label style="font-weight:700; font-size:0.88rem; color:#777;">NHÂN VẬT LỊCH SỬ:</label>
-            <button type="button" class="btn btn-outline" style="padding:3px 10px; font-size:0.8rem;" onclick="copyFieldText('${post.historicalFigure || ''}', 'Nhân vật lịch sử')">
+            <button type="button" class="btn btn-outline" style="padding:3px 10px; font-size:0.8rem;" onclick="copyByField('${post.id}', 'historicalFigure', 'Nhân vật lịch sử')">
               <i class="fa-regular fa-copy"></i> Copy
             </button>
           </div>
@@ -714,7 +733,7 @@
         <div style="margin-bottom:16px;">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
             <label style="font-weight:700; font-size:0.88rem; color:#777;">TIÊU ĐỀ BÀI VIẾT:</label>
-            <button type="button" class="btn btn-outline" style="padding:3px 10px; font-size:0.8rem;" onclick="copyFieldText('${(post.title || '').replace(/'/g, "\\'")}', 'Tiêu đề')">
+            <button type="button" class="btn btn-outline" style="padding:3px 10px; font-size:0.8rem;" onclick="copyByField('${post.id}', 'title', 'Tiêu đề')">
               <i class="fa-regular fa-copy"></i> Copy
             </button>
           </div>
@@ -725,18 +744,18 @@
         <div style="margin-bottom:16px;">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
             <label style="font-weight:700; font-size:0.88rem; color:#777;">MÔ TẢ NGẮN:</label>
-            <button type="button" class="btn btn-outline" style="padding:3px 10px; font-size:0.8rem;" onclick="copyFieldText('${(post.shortDesc || '').replace(/'/g, "\\'")}', 'Mô tả ngắn')">
+            <button type="button" class="btn btn-outline" style="padding:3px 10px; font-size:0.8rem;" onclick="copyByField('${post.id}', 'shortDesc', 'Mô tả ngắn')">
               <i class="fa-regular fa-copy"></i> Copy
             </button>
           </div>
-          <div style="background:#FFF; padding:12px; border:1px solid #EEE; border-radius:6px; font-size:0.95rem;">${post.shortDesc || '(Không có)'}</div>
+          <div style="background:#FFF; padding:12px; border:1px solid #EEE; border-radius:6px; font-size:0.95rem; white-space: pre-wrap;">${post.shortDesc || '(Không có)'}</div>
         </div>
 
         <!-- 4. THỜI KỲ LỊCH SỬ -->
         <div style="margin-bottom:18px;">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
             <label style="font-weight:700; font-size:0.88rem; color:#777;">THỜI KỲ LỊCH SỬ:</label>
-            <button type="button" class="btn btn-outline" style="padding:3px 10px; font-size:0.8rem;" onclick="copyFieldText('${post.historicalPeriod}', 'Thời kỳ lịch sử')">
+            <button type="button" class="btn btn-outline" style="padding:3px 10px; font-size:0.8rem;" onclick="copyByField('${post.id}', 'historicalPeriod', 'Thời kỳ lịch sử')">
               <i class="fa-regular fa-copy"></i> Copy
             </button>
           </div>
@@ -756,7 +775,7 @@
           </div>
         </div>
 
-        <!-- THANH NÚT DƯỚI CÙNG (Đã bỏ nút Copy tất cả thông tin) -->
+        <!-- THANH NÚT DƯỚI CÙNG -->
         <div style="display:flex; justify-content:flex-end; align-items:center; border-top:1px solid var(--border-color); padding-top:16px;">
           <button type="button" class="btn btn-primary" onclick="markDone('${post.id}', true)">
             <i class="fa-solid fa-circle-check"></i> ĐÃ ĐĂNG TẢI
@@ -765,6 +784,23 @@
       `;
 
       document.getElementById('viewPostModal').classList.add('show');
+    }
+
+    function copyByField(postId, fieldKey, fieldDisplayName) {
+      const post = cachedPosts.find(p => p.id === postId);
+      if (!post) return;
+
+      const value = post[fieldKey];
+      if (!value || value === '(Không có)' || value === '(Chưa nhập)') {
+        showToast(`Mục ${fieldDisplayName} chưa có dữ liệu để copy!`);
+        return;
+      }
+
+      navigator.clipboard.writeText(value).then(() => {
+        showToast(`Đã copy ${fieldDisplayName} vào Clipboard!`);
+      }).catch(err => {
+        showToast("Không thể sao chép: " + err);
+      });
     }
 
     function closeViewPostModal() {
@@ -812,19 +848,6 @@
         sel.removeAllRanges();
         showToast("Đã copy nội dung và hình ảnh!");
       }
-    }
-
-    // Hàm copy nhanh giá trị của từng trường thông tin
-    function copyFieldText(value, fieldName) {
-      if (!value || value === '(Không có)' || value === '(Chưa nhập)') {
-        showToast(`Mục ${fieldName} không có dữ liệu để copy!`);
-        return;
-      }
-      navigator.clipboard.writeText(value).then(() => {
-        showToast(`Đã copy ${fieldName} vào Clipboard!`);
-      }).catch(err => {
-        showToast("Không thể sao chép: " + err);
-      });
     }
 
     async function markDone(postId, closeModal = false) {
