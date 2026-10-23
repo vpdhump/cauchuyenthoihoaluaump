@@ -96,7 +96,7 @@
       position: absolute; right: 8px; top: 8px; bottom: 8px; padding: 0 16px;
       background: var(--primary); color: #FFF; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;
     }
-    .lookup-feedback { font-size: 0.85rem; margin-top: 6px; }
+    .lookup-feedback { font-size: 0.88rem; margin-top: 8px; line-height: 1.5; }
     .lookup-feedback.success { color: #2E7D32; }
     .lookup-feedback.error { color: #C62828; }
     .lookup-feedback.loading { color: #E65100; }
@@ -134,7 +134,7 @@
 
     .admin-workspace-header {
       display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;
-      background: #FFF; padding: 18px 24px; border-radius: var(--radius-lg); border: 1px solid var(--border-color);
+      background: #FFF; padding: 18px 24px; border-radius: var(--radius-lg); border: 1px solid var(--border-color); flex-wrap: wrap; gap: 12px;
     }
     .admin-title-box { display: flex; align-items: center; gap: 14px; }
     .admin-badge { background: var(--primary-light); color: var(--primary); padding: 6px 14px; border-radius: 999px; font-weight: 700; font-size: 0.9rem; }
@@ -192,34 +192,8 @@
               <i class="fa-solid fa-magnifying-glass"></i> Tra cứu
             </button>
           </div>
+          <!-- Phản hồi thông tin và số lượng bài đã duyệt -->
           <div id="lookupMsg" class="lookup-feedback"></div>
-        </div>
-
-        <!-- KHUNG THÔNG BÁO QUYỀN LỢI & TIẾN ĐỘ BÀI ĐÃ DUYỆT -->
-        <div id="benefitProgressCard" style="background: #FBF8F3; border: 1.5px dashed #E5D7C7; border-radius: 12px; padding: 14px 18px; margin-bottom: 20px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-            <strong style="color: var(--primary); font-size: 0.92rem;">
-              <i class="fa-solid fa-award"></i> QUYỀN LỢI THAM GIA ĐÓNG GÓP TƯ LIỆU:
-            </strong>
-            <span id="studentSubmitCountBadge" style="background: #FFF; border: 1px solid var(--border-color); padding: 2px 10px; border-radius: 999px; font-size: 0.82rem; font-weight: 700; color: #555;">
-              Nhập MSSV để tra cứu tiến độ
-            </span>
-          </div>
-          
-          <ul style="font-size: 0.88rem; color: #574D49; padding-left: 20px; line-height: 1.6; margin-bottom: 8px;">
-            <li>Đóng góp từ <strong>1 bài viết được duyệt</strong>: Nhận Điểm rèn luyện mục <strong>Văn hóa, Chính trị cấp Đại học</strong>.</li>
-            <li>Đóng góp từ <strong>5 bài viết được duyệt</strong>: Được công nhận <strong>Tiêu chí phụ Đạo đức tốt</strong>.</li>
-          </ul>
-
-          <div id="progressBarWrapper" style="display: none; margin-top: 8px;">
-            <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 4px; font-weight: 600;">
-              <span id="progressText">Tiến độ bài đã duyệt: 0/5 bài</span>
-              <span id="progressStatusText" style="color: var(--primary);"></span>
-            </div>
-            <div style="background: #EBE5DC; height: 8px; border-radius: 4px; overflow: hidden;">
-              <div id="studentProgressBar" style="background: var(--primary); width: 0%; height: 100%; transition: width 0.3s ease;"></div>
-            </div>
-          </div>
         </div>
 
         <div class="grid-3">
@@ -291,7 +265,7 @@
           </select>
         </div>
 
-        <!-- Ô 5: NỘI DUNG CHI TIẾT (CHO PHÉP CHÈN VÀ COPY HÌNH ẢNH) -->
+        <!-- Ô 5: NỘI DUNG CHI TIẾT -->
         <div class="form-group">
           <label class="form-label">Nội dung chi tiết<span class="req">*</span></label>
           <div class="editor-container">
@@ -358,7 +332,11 @@
           <span style="font-size: 0.88rem; color: var(--text-muted);">Tiếp nhận bài đóng góp và cập nhật lên website</span>
         </div>
       </div>
-      <div style="display: flex; align-items: center; gap: 12px;">
+      <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+        <!-- NÚT XUẤT EXCEL TỔNG KẾT ĐÁNH GIÁ ĐRL -->
+        <button type="button" class="btn btn-outline" style="color: #2E7D32; border-color: #A5D6A7;" onclick="exportSummaryReport()">
+          <i class="fa-solid fa-file-excel"></i> Xuất file thống kê
+        </button>
         <span class="admin-badge"><i class="fa-solid fa-user-check"></i> <span id="currentAdminNameDisplay">Admin</span></span>
         <button type="button" class="btn btn-outline" onclick="renderAdminSubmissions()"><i class="fa-solid fa-rotate-right"></i> Làm mới</button>
         <button type="button" class="btn btn-outline" onclick="logoutAdminWorkspace()"><i class="fa-solid fa-arrow-right-from-bracket"></i> Đăng xuất & Thoát</button>
@@ -404,8 +382,6 @@
        1. CẤU HÌNH & KHAI BÁO TẬP TRUNG
        ========================================================================= */
     const GOOGLE_SHEET_ID = "1b5ROAHmf7XyeBxId0ebdG1NQQIDlApwEZHjKKbALpN0";
-    
-    // ⚠️ Hãy dán đường link triển khai thực tế có đuôi /exec vào đây:
     const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx144VlCEE9a_WgD5GHnWqr2ing1QO5haGxEwHczwUiCdgkyvsygllPacloK209sjRU/exec";
 
     const SHEET_TABS = {
@@ -423,7 +399,7 @@
     let adminDatabaseCache = null;
 
     /* =========================================================================
-       2. TRA CỨU MSSV VÀ ĐỐI SOÁT BÀI ĐÃ ĐƯỢC DUYỆT
+       2. TRA CỨU MSSV VÀ BÁO SỐ LƯỢNG BÀI ĐÃ ĐƯỢC DUYỆT
        ========================================================================= */
     async function lookupStudentInfo() {
       const mssv = document.getElementById('mssvInput').value.trim();
@@ -477,25 +453,36 @@
           document.getElementById('facultyInput').value = student.faculty;
           document.getElementById('classInput').value = student.studentClass;
 
-          msg.className = 'lookup-feedback success';
-          msg.innerHTML = `<i class="fa-solid fa-circle-check"></i> Đã tìm thấy: <b>${student.fullname}</b> (${student.faculty} - ${student.studentClass})`;
-          showToast("Tra cứu thành công!");
+          cachedPosts = []; // Làm mới bộ nhớ tạm
+          const allPosts = await getLatestPosts();
+          const studentPosts = allPosts.filter(p => String(p.mssv).trim() === String(mssv).trim());
+          const approvedCount = studentPosts.filter(p => p.status === 'processed').length;
+          const pendingCount = studentPosts.filter(p => p.status !== 'processed').length;
 
-          // ĐỐI SOÁT TIẾN ĐỘ BÀI VIẾT ĐÃ ĐƯỢC ADMIN DUYỆT
-          checkStudentSubmissionsCount(mssv);
+          let statusDetail = `Đã duyệt: <b style="color:#2E7D32;">${approvedCount}</b> bài | Chờ duyệt: <b style="color:#E65100;">${pendingCount}</b> bài`;
+          if (pendingCount > 0) {
+            statusDetail += ` | <span style="color:#E65100;">${pendingCount} bài chờ duyệt</span>`;
+          }
+
+          msg.className = 'lookup-feedback success';
+          msg.innerHTML = `
+            <div><i class="fa-solid fa-circle-check"></i> Đã tìm thấy: <b>${student.fullname}</b> (${student.faculty} - ${student.studentClass})</div>
+            <div style="margin-top: 3px; font-weight: 600;"><i class="fa-solid fa-file-circle-check"></i> Số bài đóng góp: ${statusDetail}</div>
+          `;
+          showToast("Tra cứu thành công!");
         } else {
           msg.className = 'lookup-feedback error';
-          msg.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> Không tìm thấy sinh viên có MSSV "${mssv}" trong tab SinhVien!`;
+          msg.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> Không tìm thấy sinh viên có MSSV "${mssv}" trong danh sách!`;
         }
 
       } catch (err) {
         console.error("Lỗi tra cứu:", err);
         msg.className = 'lookup-feedback error';
-        msg.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Không thể đọc tab SinhVien. Hãy kiểm tra quyền Chia sẻ công khai của Sheet.';
+        msg.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Không thể đọc dữ liệu sinh viên. Vui lòng thử lại sau.';
       }
     }
 
-    async function getLatestPostsForStudent() {
+    async function getLatestPosts() {
       if (cachedPosts && cachedPosts.length > 0) return cachedPosts;
       try {
         const res = await fetch(`${APPS_SCRIPT_URL}?action=getPosts`);
@@ -504,58 +491,6 @@
         return cachedPosts;
       } catch (e) {
         return JSON.parse(localStorage.getItem('studentSubmissions') || '[]');
-      }
-    }
-
-    async function checkStudentSubmissionsCount(mssv) {
-      const badge = document.getElementById('studentSubmitCountBadge');
-      const progressWrapper = document.getElementById('progressBarWrapper');
-      const progressText = document.getElementById('progressText');
-      const progressBar = document.getElementById('studentProgressBar');
-      const progressStatus = document.getElementById('progressStatusText');
-
-      if (!badge || !progressWrapper) return;
-
-      badge.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang đối soát...';
-
-      const allPosts = await getLatestPostsForStudent();
-      const studentPosts = allPosts.filter(p => String(p.mssv).trim() === String(mssv).trim());
-      
-      const approvedPosts = studentPosts.filter(p => p.status === 'processed');
-      const pendingPosts = studentPosts.filter(p => p.status !== 'processed');
-
-      const approvedCount = approvedPosts.length;
-      const pendingCount = pendingPosts.length;
-
-      progressWrapper.style.display = 'block';
-
-      let badgeHtml = `Đã duyệt: <b style="color:#2E7D32; font-size:0.95rem;">${approvedCount}</b> bài`;
-      if (pendingCount > 0) {
-        badgeHtml += ` <span style="color:#E65100; font-size:0.8rem;">(${pendingCount} bài chờ duyệt)</span>`;
-      }
-      badge.innerHTML = badgeHtml;
-
-      const percent = Math.min((approvedCount / 5) * 100, 100);
-      progressBar.style.width = percent + '%';
-      progressText.innerText = `Tiến độ xét duyệt: ${approvedCount}/5 bài hợp lệ`;
-
-      if (approvedCount >= 5) {
-        progressStatus.innerHTML = '<i class="fa-solid fa-circle-check"></i> ĐỦ ĐIỀU KIỆN TIÊU CHÍ PHỤ ĐẠO ĐỨC TỐT!';
-        progressStatus.style.color = '#2E7D32';
-        progressBar.style.background = '#2E7D32';
-      } else if (approvedCount >= 1) {
-        progressStatus.innerHTML = `<i class="fa-solid fa-circle-check"></i> Đạt ĐRL Văn hóa - Chính trị (Cần thêm ${5 - approvedCount} bài để đạt Tiêu chí phụ)`;
-        progressStatus.style.color = 'var(--primary)';
-        progressBar.style.background = 'var(--primary)';
-      } else {
-        if (pendingCount > 0) {
-          progressStatus.innerText = `Đang có ${pendingCount} bài chờ Admin duyệt để tính điểm.`;
-          progressStatus.style.color = '#E65100';
-        } else {
-          progressStatus.innerText = 'Chưa có bài duyệt. Gửi bài ngay để nhận ĐRL!';
-          progressStatus.style.color = '#888';
-        }
-        progressBar.style.background = '#CCC';
       }
     }
 
@@ -630,10 +565,6 @@
       document.getElementById('submissionForm').reset();
       document.getElementById('editorContent').innerHTML = '';
       document.getElementById('lookupMsg').innerHTML = '';
-      const progressWrapper = document.getElementById('progressBarWrapper');
-      if (progressWrapper) progressWrapper.style.display = 'none';
-      const badge = document.getElementById('studentSubmitCountBadge');
-      if (badge) badge.innerText = 'Nhập MSSV để tra cứu tiến độ';
     }
 
     function execCmd(cmd, val = null) {
@@ -740,17 +671,22 @@
       showToast("Đã đăng xuất khỏi Bàn làm việc Admin.");
     }
 
-    /* =========================================================================
-       5. DANH SÁCH BÀI VIẾT (HIỂN THỊ CỘT NHÂN VẬT LỊCH SỬ)
-       ========================================================================= */
-    async function renderAdminSubmissions() {
+    async function renderAdminSubmissions(renderLocalOnly = false) {
       const tbody = document.getElementById('submissionTableBody');
+
+      // Nếu chỉ cần cập nhật nhanh từ bộ nhớ tạm vừa bấm
+      if (renderLocalOnly && cachedPosts && cachedPosts.length > 0) {
+        drawSubmissionsTable(cachedPosts);
+        return;
+      }
+
       tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:20px;"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải danh sách bài viết...</td></tr>`;
 
       let posts = [];
       if (!APPS_SCRIPT_URL.includes("THAY_THE_URL_CUA_BAN") && !APPS_SCRIPT_URL.includes("...")) {
         try {
-          const res = await fetch(`${APPS_SCRIPT_URL}?action=getPosts`);
+          // Thêm &_t=${Date.now()} để triệt tiêu hoàn toàn cache cũ của trình duyệt
+          const res = await fetch(`${APPS_SCRIPT_URL}?action=getPosts&_t=${Date.now()}`);
           const data = await res.json();
           posts = data.posts || [];
         } catch (err) {
@@ -761,8 +697,13 @@
       }
 
       cachedPosts = posts;
+      drawSubmissionsTable(cachedPosts);
+    }
 
-      if (posts.length === 0) {
+    // Hàm vẽ bảng dữ liệu
+    function drawSubmissionsTable(posts) {
+      const tbody = document.getElementById('submissionTableBody');
+      if (!posts || posts.length === 0) {
         tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:20px; color:#999;">Chưa có bài viết nào được nộp.</td></tr>`;
         return;
       }
@@ -788,6 +729,78 @@
           </td>
         </tr>
       `).join('');
+    }
+
+    // TÍNH NĂNG TỔNG KẾT VÀ XUẤT FILE DANH SÁCH XÉT QUYỀN LỢI
+    function exportSummaryReport() {
+      if (!cachedPosts || cachedPosts.length === 0) {
+        alert("Chưa có dữ liệu bài viết để xuất thống kê!");
+        return;
+      }
+
+      // Gom nhóm bài viết theo từng sinh viên (MSSV)
+      const studentMap = {};
+
+      cachedPosts.forEach(post => {
+        const mssv = String(post.mssv).trim();
+        if (!mssv) return;
+
+        if (!studentMap[mssv]) {
+          studentMap[mssv] = {
+            mssv: mssv,
+            fullname: post.fullname || '',
+            faculty: post.faculty || '',
+            studentClass: post.studentClass || '',
+            totalSubmissions: 0,
+            approvedCount: 0
+          };
+        }
+        
+        studentMap[mssv].totalSubmissions += 1;
+        if (post.status === 'processed') {
+          studentMap[mssv].approvedCount += 1;
+        }
+      });
+
+      // Tạo tiêu đề file CSV chuẩn UTF-8 (mở trên Excel hiển thị tiếng Việt chuẩn)
+      let csvContent = "\uFEFF";
+      csvContent += "STT,MSSV,Họ và tên,Trường/Khoa,Lớp,Số bài đã gửi,Số bài đã duyệt,Quyền lợi\n";
+
+      let index = 1;
+      for (const mssv in studentMap) {
+        const s = studentMap[mssv];
+        
+        // Phân loại mã quyền lợi theo số lượng bài đã duyệt
+        let benefit = "-";
+        if (s.approvedCount >= 5) {
+          benefit = "3.1.2 (SV5T)";
+        } else if (s.approvedCount >= 1) {
+          benefit = "3.1.1";
+        }
+
+        const row = [
+          index++,
+          `"${s.mssv}"`,
+          `"${s.fullname}"`,
+          `"${s.faculty}"`,
+          `"${s.studentClass}"`,
+          s.totalSubmissions,
+          s.approvedCount,
+          `"${benefit}"`
+        ];
+        csvContent += row.join(",") + "\n";
+      }
+
+      // Tự động tải file CSV về máy
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", `Danh_Sach_Quyen_Loi_Thoi_Hoa_Lua_${new Date().toISOString().slice(0,10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast("Đã xuất danh sách xét quyền lợi thành công!");
     }
 
     /* =========================================================================
@@ -896,7 +909,7 @@
       }
 
       navigator.clipboard.writeText(value).then(() => {
-        showToast(`Đã copy ${fieldDisplayName} vào Clipboard!`);
+        showToast(`Đã sao chép`);
       }).catch(err => {
         showToast("Không thể sao chép: " + err);
       });
@@ -927,7 +940,7 @@
             "text/plain": blobText
           });
           await navigator.clipboard.write([item]);
-          showToast("Đã copy toàn bộ nội dung & HÌNH ẢNH vào Clipboard!");
+          showToast("Đã sao chép");
           return;
         }
       } catch (err) {
@@ -943,23 +956,44 @@
         sel.addRange(range);
         document.execCommand("copy");
         sel.removeAllRanges();
-        showToast("Đã copy nội dung và hình ảnh!");
+        showToast("Đã sao chép");
       }
     }
 
     async function markDone(postId, closeModal = false) {
       showToast("Đang cập nhật trạng thái...");
-      if (!APPS_SCRIPT_URL.includes("THAY_THE_URL_CUA_BAN") && !APPS_SCRIPT_URL.includes("...")) {
-        await fetch(APPS_SCRIPT_URL, {
-          method: "POST",
-          mode: "no-cors",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "updatePostStatus", id: postId, status: "processed", adminName: `${currentAdminName} (Đã xong)` })
-        });
+
+      // 1. CẬP NHẬT TRỰC TIẾP TRÊN GIAO DIỆN (Đổi ngay sang Đã xử lý không bị delay)
+      const post = (cachedPosts || []).find(p => p.id === postId);
+      if (post) {
+        post.status = "processed";
+        post.assignedAdmin = `${currentAdminName} (Đã xong)`;
       }
-      showToast("Đã đánh dấu xử lý xong!");
+
+      // Đóng modal chi tiết và vẽ lại bảng ngay lập tức
       if (closeModal) closeViewPostModal();
-      renderAdminSubmissions();
+      renderAdminSubmissions(true); // true = vẽ lại ngay bằng dữ liệu vừa cập nhật
+
+      // 2. GỬI LỆNH LÊN GOOGLE APPS SCRIPT ĐỂ LƯU VÀO SHEET
+      if (!APPS_SCRIPT_URL.includes("THAY_THE_URL_CUA_BAN") && !APPS_SCRIPT_URL.includes("...")) {
+        try {
+          await fetch(APPS_SCRIPT_URL, {
+            method: "POST",
+            mode: "no-cors",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ 
+              action: "updatePostStatus", 
+              id: postId, 
+              status: "processed", 
+              adminName: `${currentAdminName} (Đã xong)` 
+            })
+          });
+        } catch (err) {
+          console.error("Lỗi cập nhật sheet:", err);
+        }
+      }
+
+      showToast("Đã đánh dấu ĐÃ ĐĂNG TẢI thành công!");
     }
 
     function showToast(msg) {
