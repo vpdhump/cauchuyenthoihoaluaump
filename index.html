@@ -398,9 +398,6 @@
     let studentDatabaseCache = null;
     let adminDatabaseCache = null;
 
-    /* =========================================================================
-       2. TRA CỨU MSSV VÀ BÁO SỐ LƯỢNG BÀI ĐÃ ĐƯỢC DUYỆT
-       ========================================================================= */
     async function lookupStudentInfo() {
       const mssv = document.getElementById('mssvInput').value.trim();
       const msg = document.getElementById('lookupMsg');
@@ -453,18 +450,20 @@
           document.getElementById('facultyInput').value = student.faculty;
           document.getElementById('classInput').value = student.studentClass;
 
-          cachedPosts = []; // Làm mới bộ nhớ tạm
+          // Làm mới bộ nhớ tạm để đếm chính xác từ server
+          cachedPosts = [];
           const allPosts = await getLatestPosts();
           const studentPosts = allPosts.filter(p => String(p.mssv).trim() === String(mssv).trim());
           const approvedCount = studentPosts.filter(p => p.status === 'processed').length;
           const pendingCount = studentPosts.filter(p => p.status !== 'processed').length;
 
-          let statusDetail = `Đã duyệt: <b style="color:#2E7D32;">${approvedCount}</b> bài | Chờ duyệt: <b style="color:#E65100;">${pendingCount}</b> bài`;
+          let statusDetail = `Đã duyệt: <b style="color:#2E7D32;">${approvedCount}/3</b> bài`;
           if (pendingCount > 0) {
             statusDetail += ` | <span style="color:#E65100;">${pendingCount} bài chờ duyệt</span>`;
           }
 
           msg.className = 'lookup-feedback success';
+          // Chỉ hiển thị thông tin sinh viên và số lượng bài, không hiện tên nhân vật
           msg.innerHTML = `
             <div><i class="fa-solid fa-circle-check"></i> Đã tìm thấy: <b>${student.fullname}</b> (${student.faculty} - ${student.studentClass})</div>
             <div style="margin-top: 3px; font-weight: 600;"><i class="fa-solid fa-file-circle-check"></i> Số bài đóng góp: ${statusDetail}</div>
@@ -494,18 +493,31 @@
       }
     }
 
-    /* =========================================================================
-       3. GỬI BÀI VIẾT (LƯU VÀO SHEET 'BaiViet')
-       ========================================================================= */
     async function handleFormSubmit(event) {
       event.preventDefault();
 
+      const mssvInput = document.getElementById('mssvInput').value.trim();
       const figureInput = document.getElementById('postFigure').value.trim();
       const titleInput = document.getElementById('postTitle').value.trim();
       const editorContent = document.getElementById('editorContent').innerHTML.trim();
 
       if (!figureInput) {
         alert("Vui lòng nhập tên Nhân vật lịch sử!");
+        document.getElementById('postFigure').focus();
+        return;
+      }
+
+      // KIỂM TRA NGẦM: Báo lỗi nếu trùng tên nhân vật của chính sinh viên này
+      const allPosts = await getLatestPosts();
+      const studentPosts = allPosts.filter(p => String(p.mssv).trim() === String(mssvInput).trim());
+      
+      const isDuplicateFigure = studentPosts.some(p => {
+        const existingFigure = String(p.historicalFigure || '').trim().toLowerCase();
+        return existingFigure === figureInput.toLowerCase();
+      });
+
+      if (isDuplicateFigure) {
+        alert(`Bạn đã từng gửi bài viết về nhân vật "${figureInput}". Vui lòng chọn một nhân vật lịch sử khác (mỗi sinh viên viết về các nhân vật khác nhau)!`);
         document.getElementById('postFigure').focus();
         return;
       }
@@ -525,7 +537,7 @@
         action: "submitPost",
         id: "POST_" + Date.now(),
         timestamp: new Date().toLocaleString('vi-VN'),
-        mssv: document.getElementById('mssvInput').value.trim(),
+        mssv: mssvInput,
         fullname: document.getElementById('fullnameInput').value.trim(),
         faculty: document.getElementById('facultyInput').value.trim(),
         studentClass: document.getElementById('classInput').value.trim(),
@@ -738,7 +750,6 @@
         return;
       }
 
-      // Gom nhóm bài viết theo từng sinh viên (MSSV)
       const studentMap = {};
 
       cachedPosts.forEach(post => {
@@ -762,7 +773,6 @@
         }
       });
 
-      // Tạo tiêu đề file CSV chuẩn UTF-8 (mở trên Excel hiển thị tiếng Việt chuẩn)
       let csvContent = "\uFEFF";
       csvContent += "STT,MSSV,Họ và tên,Trường/Khoa,Lớp,Số bài đã gửi,Số bài đã duyệt,Quyền lợi\n";
 
@@ -770,9 +780,9 @@
       for (const mssv in studentMap) {
         const s = studentMap[mssv];
         
-        // Phân loại mã quyền lợi theo số lượng bài đã duyệt
+        // MỐC MỚI: TỪ 3 BÀI DUYỆT TRỞ LÊN ĐẠT 3.1.2 (SV5T)
         let benefit = "-";
-        if (s.approvedCount >= 5) {
+        if (s.approvedCount >= 3) {
           benefit = "3.1.2 (SV5T)";
         } else if (s.approvedCount >= 1) {
           benefit = "3.1.1";
@@ -791,7 +801,6 @@
         csvContent += row.join(",") + "\n";
       }
 
-      // Tự động tải file CSV về máy
       const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
